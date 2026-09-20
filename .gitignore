@@ -1,0 +1,19 @@
+# C# / .NET
+bin/
+obj/
+*.user
+*.suo
+.vs/
+*.userprefs
+.idea/
+*.DotSettings.user
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Secrets
+*.env
+appsettings.Development.json
+secrets.json
