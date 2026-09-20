@@ -2,19 +2,15 @@
 
 Console.OutputEncoding = System.Text.Encoding.UTF8;
 
-DateTime today = DateTime.Today;
+Doctor d1 = new Doctor("Олег", "Сидоренко", "Кардіологія", "LIC-001", "0441234567");
+d1.WorkEndHour = 16;
 
-Patient p1 = new Patient("Олександр", "Грицько", today.AddYears(-41), "A+", "0501234567");
-Patient p2 = new Patient("Ольга", "Коваленко", today.AddYears(-33), "B-", "0672345678");
-Patient p3 = new Patient("Олег", "Локран", today.AddYears(-16), "O+", "0933456789");
+Doctor d2 = new Doctor("Наталія", "Мороз", "Неврологія", "LIC-002", "0442345678");
+d2.WorkStartHour = 9;
+d2.WorkEndHour = 18; 
 
-Patient p4 = new Patient();
+Doctor d3 = new Doctor("Андрій", "Власенко", "Педіатрія", "LIC-003", "0443456789");
 
-
-Patient p5 = new Patient("Тетяна", "Шиманська");
-
-Console.WriteLine(p1);
-Console.WriteLine(p2);
-Console.WriteLine(p3);
-Console.WriteLine(p4);
-Console.WriteLine(p5);
+Console.WriteLine(d1);
+Console.WriteLine(d2);
+Console.WriteLine(d3);
