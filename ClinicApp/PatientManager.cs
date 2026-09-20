@@ -21,12 +21,9 @@ public class  PatientManager
             Console.WriteLine("Помилка: досягнуто ліміту пацієнтів (100).");
             return;
         }
-        else
-        {
-            _patients[_count] = patient;
-            _count++;
-            Console.WriteLine($"Пацієнта [{patient.Id}] {patient.FullName} додано.");
-        }
+
+        _patients[_count] = patient;
+        _count++;
     }
 
     public Patient? FindById(int id)
