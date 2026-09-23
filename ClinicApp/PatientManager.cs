@@ -1,6 +1,6 @@
 namespace ClinicApp;
 
-public class  PatientManager
+public class PatientManager
 {
     private const int MaxPatients = 100;
     private Patient[] _patients = new Patient[MaxPatients];
@@ -8,9 +8,9 @@ public class  PatientManager
 
     public int Count
     {
-        get 
-        { 
-            return _count; 
+        get
+        {
+            return _count;
         }
     }
 
@@ -24,6 +24,7 @@ public class  PatientManager
 
         _patients[_count] = patient;
         _count++;
+        Console.WriteLine($"Пацієнта [{patient.Id}] {patient.FullName} додано.");
     }
 
     public Patient? FindById(int id)
@@ -38,13 +39,14 @@ public class  PatientManager
         return null;
     }
 
-    public Patient[] FindByName(string name)
+    public Patient[] FindByName(string query)
     {
-        string search = name.ToLower();
+        string q = (query ?? "").Trim().ToLower();
         int matchCount = 0;
+
         for (int i = 0; i < _count; i++)
         {
-            if (_patients[i].FirstName.ToLower().Contains(search) || _patients[i].LastName.ToLower().Contains(search))
+            if (_patients[i].FirstName.ToLower().Contains(q) || _patients[i].LastName.ToLower().Contains(q))
             {
                 matchCount++;
             }
@@ -55,7 +57,7 @@ public class  PatientManager
 
         for (int i = 0; i < _count; i++)
         {
-            if (_patients[i].FirstName.ToLower().Contains(search) || _patients[i].LastName.ToLower().Contains(search))
+            if (_patients[i].FirstName.ToLower().Contains(q) || _patients[i].LastName.ToLower().Contains(q))
             {
                 result[index] = _patients[i];
                 index++;
@@ -65,7 +67,7 @@ public class  PatientManager
         return result;
     }
 
-        public bool Remove(int id)
+    public bool Remove(int id)
     {
         int targetIndex = -1;
         for (int i = 0; i < _count; i++)
@@ -87,8 +89,8 @@ public class  PatientManager
             _patients[i] = _patients[i + 1];
         }
 
+        _patients[_count - 1] = null!;
         _count--;
-        _patients[_count] = null;
         return true;
     }
 
@@ -96,7 +98,7 @@ public class  PatientManager
     {
         if (_count == 0)
         {
-            Console.WriteLine("Список пацієнтів порожній.");
+            Console.WriteLine("порожній список");
             return;
         }
 
@@ -105,50 +107,49 @@ public class  PatientManager
         {
             Console.WriteLine(_patients[i]);
         }
-        Console.WriteLine("____________________________________________________________");
     }
 
     public void DisplayStats()
     {
+        Console.WriteLine("=== Статистика пацієнтів ===");
         if (_count == 0)
         {
-            Console.WriteLine("Статистика недоступна: список порожній.");
+            Console.WriteLine("порожній список");
             return;
         }
 
         int totalAge = 0;
-        int adultCount = 0;
-        int youngestIndex = 0;
-        int oldestIndex = 0;
+        int minIdx = 0;
+        int maxIdx = 0;
+        int adultsCount = 0;
 
         for (int i = 0; i < _count; i++)
         {
-            totalAge += _patients[i].Age;
+            int age = _patients[i].Age;
+            totalAge += age;
 
-            if (_patients[i].IsAdult)
+            if (age < _patients[minIdx].Age)
             {
-                adultCount++;
+                minIdx = i;
             }
 
-            if (_patients[i].Age < _patients[youngestIndex].Age)
+            if (age > _patients[maxIdx].Age)
             {
-                youngestIndex = i;
+                maxIdx = i;
             }
 
-            if (_patients[i].Age > _patients[oldestIndex].Age)
+            if (age >= 18)
             {
-                oldestIndex = i;
+                adultsCount++;
             }
         }
 
-        double averageAge = (double)totalAge / _count;
+        double avgAge = (double)totalAge / _count;
 
-        Console.WriteLine("=== Статистика пацієнтів ===");
-        Console.WriteLine($"Всього:       {_count}");
-        Console.WriteLine($"Середній вік: {averageAge:F1} р.");
-        Console.WriteLine($"Наймолодший:  {_patients[youngestIndex].FullName} ({_patients[youngestIndex].Age} р.)");
-        Console.WriteLine($"Найстарший:   {_patients[oldestIndex].FullName} ({_patients[oldestIndex].Age} р.)");
-        Console.WriteLine($"Дорослих:     {adultCount} з {_count}");
-        Console.WriteLine("============================");
-    }  
- }
+        Console.WriteLine($"Всього: {_count}");
+        Console.WriteLine($"Середній вік: {avgAge:F1} р.");
+        Console.WriteLine($"Наймолодший: {_patients[minIdx].FullName} ({_patients[minIdx].Age} р.)");
+        Console.WriteLine($"Найстарший: {_patients[maxIdx].FullName} ({_patients[maxIdx].Age} р.)");
+        Console.WriteLine($"Дорослих: {adultsCount} з {_count}");
+    }
+}
