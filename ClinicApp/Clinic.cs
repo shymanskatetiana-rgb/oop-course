@@ -34,7 +34,7 @@ public class Clinic
             for (int i = 1; i <= 3; i++)
             {
                 var byP = Appointments.GetByPatient(i);
-                if (byP.Length > 0 && byP[0].Status == "Scheduled") schedCount++;
+                if (byP.Length > 0 && byP[0].Status == AppointmentStatus.Scheduled) schedCount++;
             }
             if (schedCount > 0)
             {
