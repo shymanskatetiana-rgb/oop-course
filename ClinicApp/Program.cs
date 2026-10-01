@@ -5,9 +5,9 @@ Console.OutputEncoding = System.Text.Encoding.UTF8;
 PatientManager pm = new PatientManager();
 DateTime today = DateTime.Today;
 
-pm.Add(new Patient("Іван", "Петренко", today.AddYears(-41), "A+", "0501234567"));
-pm.Add(new Patient("Олена", "Коваль", today.AddYears(-33), "B-", "0672345678"));
-pm.Add(new Patient("Максим", "Бойко", today.AddYears(-16), "O+", "0933456789"));
+pm.Add(new Patient("Іван", "Петренко", today.AddYears(-41), BloodType.APositive, "0501234567"));
+pm.Add(new Patient("Олена", "Коваль", today.AddYears(-33), BloodType.BNegative, "0672345678"));
+pm.Add(new Patient("Максим", "Бойко", today.AddYears(-16), BloodType.OPositive, "0933456789"));
 pm.Add(new Patient("Марія", "Ткач"));
 
 Console.WriteLine();
@@ -57,7 +57,11 @@ static void RunPatientMenu(PatientManager manager)
                 string fn = Console.ReadLine() ?? "";
                 Console.Write("Прізвище: ");
                 string ln = Console.ReadLine() ?? "";
-                manager.Add(new Patient(fn, ln));
+                Console.WriteLine("Оберіть групу крові (0 - Unknown, 1 - APositive, 2 - ANegative, 3 - BPositive, 4 - BNegative, 5 - ABPositive, 6 - ABNegative, 7 - OPositive, 8 - ONegative): ");
+                Console.Write("Номер: ");
+                int.TryParse(Console.ReadLine(), out int btIndex);
+                BloodType bt = (BloodType)btIndex;
+                manager.Add(new Patient(fn, ln, DateTime.Today.AddYears(-20), bt, "0000000000"));
                 break;
             case "3":
                 Console.Write("Пошуковий запит: ");
