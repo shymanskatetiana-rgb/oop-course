@@ -38,6 +38,44 @@ public class DoctorManager
         }
     }
 
+    public Doctor[] FindBySpeciality(Speciality speciality)
+    {
+        int matchCount = 0;
+        for (int i = 0; i < _count; i++)
+        {
+            if (_doctors[i].Speciality == speciality)
+            {
+                matchCount++;
+            }
+        }
+
+        Doctor[] result = new Doctor[matchCount];
+        int index = 0;
+        for (int i = 0; i < _count; i++)
+        {
+            if (_doctors[i].Speciality == speciality)
+            {
+                result[index] = _doctors[i];
+                index++;
+            }
+        }
+
+        return result;
+    }
+
+    public bool TryFindById(int id, out Doctor doctor)
+    {
+        Doctor? found = FindById(id);
+        if (found != null)
+        {
+            doctor = found;
+            return true;
+        }
+
+        doctor = null!;
+        return false;
+    }
+
     public Doctor? FindById(int id)
     {
         for (int i = 0; i < _count; i++)

@@ -22,6 +22,22 @@ WorkSchedule copy = morning;
 Console.WriteLine(morning);
 Console.WriteLine(morning.IsNow);
 
+Doctor[] cardiologists = clinic.Doctors.FindBySpeciality(Speciality.Cardiology);
+Doctor[] foundDocs = clinic.Doctors.FindBySpeciality("кардіо");
+Appointment[] appToday = clinic.Appointments.GetByDate(DateTime.Today.Year, DateTime.Today.Month, DateTime.Today.Day);
+
+if (clinic.Patients.TryFindById(1, out Patient patient))
+{
+    Console.WriteLine($"Знайдено: {patient.FullName}");
+}
+else
+{
+    Console.WriteLine("Пацієнта не знайдено.");
+}
+
+string unknownName = clinic.Patients.FindById(99)?.FullName ?? "не знайдено";
+Console.WriteLine(unknownName);
+
 RunMainMenu(clinic);
 
 static void RunMainMenu(Clinic clinic)

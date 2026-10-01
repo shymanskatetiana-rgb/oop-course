@@ -27,6 +27,44 @@ public class PatientManager
         Console.WriteLine($"Пацієнта [{patient.Id}] {patient.FullName} додано.");
     }
 
+    public Patient[] FindByBloodType(BloodType bloodType)
+    {
+        int matchCount = 0;
+        for (int i = 0; i < _count; i++)
+        {
+            if (_patients[i].BloodType == bloodType)
+            {
+                matchCount++;
+            }
+        }
+
+        Patient[] result = new Patient[matchCount];
+        int index = 0;
+        for (int i = 0; i < _count; i++)
+        {
+            if (_patients[i].BloodType == bloodType)
+            {
+                result[index] = _patients[i];
+                index++;
+            }
+        }
+
+        return result;
+    }
+
+    public bool TryFindById(int id, out Patient patient)
+    {
+        Patient? found = FindById(id);
+        if (found != null)
+        {
+            patient = found;
+            return true;
+        }
+
+        patient = null!;
+        return false;
+    }
+
     public Patient? this[int index]
     {
         get

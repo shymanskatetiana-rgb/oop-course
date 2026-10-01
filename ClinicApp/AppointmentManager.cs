@@ -22,6 +22,11 @@ public class AppointmentManager
         _doctors = doctorManager;
     }
 
+    public Appointment[] GetByDate(int year, int month, int day)
+    {
+        return GetByDate(new DateTime(year, month, day));
+    }
+
     public Appointment? this[int index]
     {
         get
