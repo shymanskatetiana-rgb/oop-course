@@ -27,6 +27,18 @@ public class PatientManager
         Console.WriteLine($"Пацієнта [{patient.Id}] {patient.FullName} додано.");
     }
 
+    public Patient? this[int index]
+    {
+        get
+        {
+            if (index < 0 || index >= _count)
+            {
+                return null;
+            }
+            return _patients[index];
+        }
+    }
+
     public Patient? FindById(int id)
     {
         for (int i = 0; i < _count; i++)
