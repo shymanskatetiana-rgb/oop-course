@@ -19,7 +19,9 @@ clinic.Appointments.Book(2, 2, DateTime.Today.AddHours(11), 45);
 
 WorkSchedule morning = new WorkSchedule(8, 16);
 WorkSchedule copy = morning;
+copy = new WorkSchedule(9, 18);
 Console.WriteLine(morning);
+Console.WriteLine(copy);
 Console.WriteLine(morning.IsNow);
 
 Doctor[] cardiologists = clinic.Doctors.FindBySpeciality(Speciality.Cardiology);
