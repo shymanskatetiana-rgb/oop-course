@@ -59,7 +59,11 @@ public class Patient
     public string Email
     {
         get => _email;
-        set => _email = value;
+        set
+        {
+            ClinicValidator.ValidateEmail(value);
+            _email = value;
+        }
     }
 
     public string FullName
