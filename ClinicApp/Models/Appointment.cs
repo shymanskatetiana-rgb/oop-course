@@ -1,4 +1,7 @@
-﻿namespace ClinicApp;
+﻿using System;
+using ClinicApp.Enums;
+
+namespace ClinicApp.Models;
 
 public class Appointment
 {
