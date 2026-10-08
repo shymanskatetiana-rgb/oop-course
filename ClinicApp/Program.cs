@@ -117,7 +117,6 @@ static void RunPatientMenu(PatientManager manager)
                 int.TryParse(Console.ReadLine(), out int btIndex);
                 BloodType bt = (BloodType)btIndex;
 
-                // Захищаємо створення об'єкта та додавання через try-catch
                 try
                 {
                     manager.Add(new Patient(fn, ln, DateTime.Today.AddYears(-20), bt, phone));
@@ -165,7 +164,8 @@ static void RunDoctorMenu(DoctorManager manager)
         Console.WriteLine("\n--- Меню «Лікарі» ---");
         Console.WriteLine("1. Показати всіх");
         Console.WriteLine("2. Пошук за спеціальністю");
-        Console.WriteLine("3. Статистика");
+        Console.WriteLine("3. Додати лікаря");
+        Console.WriteLine("4. Статистика");
         Console.WriteLine("0. Назад");
         Console.Write("Ваш вибір: ");
 
@@ -185,6 +185,46 @@ static void RunDoctorMenu(DoctorManager manager)
                 else foreach (var d in docs) Console.WriteLine(d);
                 break;
             case "3":
+                Console.Write("Ім'я: ");
+                string dfn = Console.ReadLine() ?? "";
+                Console.Write("Прізвище: ");
+                string dln = Console.ReadLine() ?? "";
+                Console.Write("Номер ліцензії: ");
+                string lic = Console.ReadLine() ?? "";
+                Console.Write("Телефон (10 цифр): ");
+                string dphone = Console.ReadLine() ?? "";
+                Console.WriteLine("Оберіть спеціальність (0 - General, 1 - Cardiology, 2 - Neurology, 3 - Pediatrics, 4 - Surgery, 5 - Orthopedics, 6 - Dermatology, 7 - Emergency): ");
+                Console.Write("Номер: ");
+                int.TryParse(Console.ReadLine(), out int specIdx);
+                Speciality newSpec = (Speciality)specIdx;
+
+                Console.Write("Година початку роботи (0-23): ");
+                int.TryParse(Console.ReadLine(), out int startH);
+                Console.Write("Година завершення роботи (1-24): ");
+                int.TryParse(Console.ReadLine(), out int endH);
+
+                try
+                {
+                    WorkSchedule schedule = new WorkSchedule(startH, endH);
+                    Doctor newDoctor = new Doctor(dfn, dln, newSpec, lic, dphone);
+                    newDoctor.Schedule = schedule;
+                    manager.Add(newDoctor);
+                    Console.WriteLine("Лікаря успішно додано!");
+                }
+                catch (ArgumentOutOfRangeException ex)
+                {
+                    Console.WriteLine($"Помилка діапазону: {ex.Message}");
+                }
+                catch (ArgumentException ex)
+                {
+                    Console.WriteLine($"Помилка введення: {ex.Message}");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Несподівана помилка: {ex.Message}");
+                }
+                break;
+            case "4":
                 manager.DisplayStats();
                 break;
         }
@@ -228,9 +268,12 @@ static void RunAppointmentMenu(AppointmentManager appManager, PatientManager pMa
                 Console.Write("Година прийому сьогодні (0-23): ");
                 int.TryParse(Console.ReadLine(), out int h);
 
+                Console.Write("Тривалість у хвилинах (наприклад 30): ");
+                int.TryParse(Console.ReadLine(), out int duration);
+
                 try
                 {
-                    appManager.Book(pId, dId, DateTime.Today.AddHours(h), 30);
+                    appManager.Book(pId, dId, DateTime.Today.AddHours(h), duration);
                     Console.WriteLine("Запис успішно створено!");
                 }
                 catch (ArgumentOutOfRangeException ex)
