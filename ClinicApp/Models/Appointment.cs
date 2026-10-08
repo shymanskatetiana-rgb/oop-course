@@ -27,36 +27,31 @@ public class Appointment
         set
         {
             if (value <= 0)
-                throw new ArgumentOutOfRangeException(nameof(value), "Тривалість повинна бути більше 0.");
+                throw new ArgumentOutOfRangeException(nameof(DurationMinutes), "Тривалість повинна бути більше 0.");
             _durationMinutes = value;
         }
     }
 
     public DateTime EndsAt
     {
-        get
-        {
-            return ScheduledAt.AddMinutes(DurationMinutes);
-        }
+        get { return ScheduledAt.AddMinutes(DurationMinutes); }
     }
 
     public bool IsUpcoming
     {
-        get
-        {
-            return ScheduledAt > DateTime.Now && Status == AppointmentStatus.Scheduled;
-        }
+        get { return ScheduledAt > DateTime.Now && Status == AppointmentStatus.Scheduled; }
     }
 
     public Appointment(int patientId, int doctorId, DateTime scheduledAt, int durationMinutes = 30)
     {
-        Id = _nextId++;
         PatientId = patientId;
         DoctorId = doctorId;
         ScheduledAt = scheduledAt;
         DurationMinutes = durationMinutes;
         Status = AppointmentStatus.Scheduled;
         Notes = "";
+
+        Id = _nextId++;
     }
 
     public bool Cancel(string reason = "")

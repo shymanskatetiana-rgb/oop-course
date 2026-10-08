@@ -1,3 +1,5 @@
+using System;
+
 namespace ClinicApp.Models;
 
 public struct WorkSchedule
@@ -7,26 +9,17 @@ public struct WorkSchedule
 
     public int HoursPerDay
     {
-        get
-        {
-            return End - Start;
-        }
+        get { return End - Start; }
     }
 
     public string Display
     {
-        get
-        {
-            return $"{Start:D2}:00–{End:D2}:00";
-        }
+        get { return $"{Start:D2}:00–{End:D2}:00"; }
     }
 
     public bool IsNow
     {
-        get
-        {
-            return Contains(DateTime.Now.Hour);
-        }
+        get { return Contains(DateTime.Now.Hour); }
     }
 
     public bool Contains(int hour)
@@ -36,15 +29,18 @@ public struct WorkSchedule
 
     public WorkSchedule(int start, int end)
     {
-        if (start < 0 || start > 23 || end < 1 || end > 24)
-            throw new ArgumentOutOfRangeException("Години роботи мають бути у межах: start (0..23), end (1..24).");
+        if (start < 0 || start > 23)
+            throw new ArgumentOutOfRangeException(nameof(start), "Година початку роботи має бути в межах 0..23.");
+
+        if (end < 1 || end > 24)
+            throw new ArgumentOutOfRangeException(nameof(end), "Година завершення роботи має бути в межах 1..24.");
 
         if (start >= end)
-            throw new ArgumentException("Час початку роботи має бути меншим за час завершення.");
+            throw new ArgumentException("Час початку роботи має бути меншим за час завершення.", nameof(start));
 
         Start = start;
         End = end;
-    }   
+    }
 
     public override string ToString()
     {

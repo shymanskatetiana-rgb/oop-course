@@ -22,7 +22,7 @@ public class Doctor
         set
         {
             if (string.IsNullOrWhiteSpace(value) || value.Length > 50)
-                throw new ArgumentException("Ім'я не може бути порожнім або довшим за 50 символів.", nameof(value));
+                throw new ArgumentException("Ім'я не може бути порожнім або довшим за 50 символів.", nameof(FirstName));
             _firstName = value.Trim();
         }
     }
@@ -33,7 +33,7 @@ public class Doctor
         set
         {
             if (string.IsNullOrWhiteSpace(value) || value.Length > 50)
-                throw new ArgumentException("Прізвище не може бути порожнім або довшим за 50 символів.", nameof(value));
+                throw new ArgumentException("Прізвище не може бути порожнім або довшим за 50 символів.", nameof(LastName));
             _lastName = value.Trim();
         }
     }
@@ -44,7 +44,7 @@ public class Doctor
         set
         {
             if (string.IsNullOrWhiteSpace(value))
-                throw new ArgumentException("Номер ліцензії не може бути порожнім.",  nameof(value));
+                throw new ArgumentException("Номер ліцензії не може бути порожнім.", nameof(LicenseNumber));
             _licenseNumber = value.Trim();
         }
     }
@@ -54,42 +54,37 @@ public class Doctor
         get => _phone;
         set
         {
-            if (string.IsNullOrWhiteSpace(value) || value.Length != 10 || !long.TryParse(value, out _))
-                throw new ArgumentException("Номер телефону має складатися з 10 цифр.", nameof(value));
+            if (string.IsNullOrWhiteSpace(value) || value.Length != 10)
+                throw new ArgumentException("Номер телефону має складатися рівно з 10 символів.", nameof(Phone));
+
+            foreach (char c in value)
+            {
+                if (!char.IsDigit(c))
+                    throw new ArgumentException("Номер телефону має містити лише цифри.", nameof(Phone));
+            }
+
             _phone = value;
         }
     }
 
     public string FullName
     {
-        get
-        {
-            return FirstName + " " + LastName;
-        }
+        get { return FirstName + " " + LastName; }
     }
 
     public int WorkHoursPerDay
     {
-        get
-        {
-            return Schedule.HoursPerDay;
-        }
+        get { return Schedule.HoursPerDay; }
     }
 
     public string WorkSchedule
     {
-        get
-        {
-            return Schedule.Display;
-        }
+        get { return Schedule.Display; }
     }
 
     public bool IsAvailableNow
     {
-        get
-        {
-            return Schedule.IsNow;
-        }
+        get { return Schedule.IsNow; }
     }
 
     public Doctor()
@@ -104,13 +99,14 @@ public class Doctor
 
     public Doctor(string firstName, string lastName, Speciality speciality, string licenseNumber, string phone)
     {
-        Id = _nextId++;
         FirstName = firstName;
         LastName = lastName;
         Speciality = speciality;
         LicenseNumber = licenseNumber;
         Phone = phone;
         Schedule = new WorkSchedule(8, 17);
+
+        Id = _nextId++;
     }
 
     public bool CanAcceptAt(int hour)
@@ -120,15 +116,7 @@ public class Doctor
 
     public override string ToString()
     {
-        string status;
-        if (IsAvailableNow)
-        {
-            status = "доступний зараз";
-        }
-        else
-        {
-            status = "не в робочий час";
-        }
+        string status = IsAvailableNow ? "доступний зараз" : "не в робочий час";
         return $"[{Id}] {FullName} | {ClinicFormatter.FormatSpeciality(Speciality)} | {LicenseNumber} | Тел: {ClinicFormatter.FormatPhone(Phone)} | {Schedule} | {status}";
     }
 }
