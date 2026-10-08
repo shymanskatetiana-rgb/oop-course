@@ -36,9 +36,15 @@ public struct WorkSchedule
 
     public WorkSchedule(int start, int end)
     {
+        if (start < 0 || start > 23 || end < 1 || end > 24)
+            throw new ArgumentOutOfRangeException("Години роботи мають бути у межах: start (0..23), end (1..24).");
+
+        if (start >= end)
+            throw new ArgumentException("Час початку роботи має бути меншим за час завершення.");
+
         Start = start;
         End = end;
-    }
+    }   
 
     public override string ToString()
     {

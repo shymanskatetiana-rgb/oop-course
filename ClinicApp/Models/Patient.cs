@@ -19,25 +19,45 @@ public class Patient
     public string FirstName
     {
         get => _firstName;
-        set => _firstName = value;
+        set
+        {
+            if (string.IsNullOrWhiteSpace(value) || value.Length > 50)
+                    throw new ArgumentException("Ім'я не може бути порожнім або довшим за 50 символів.", nameof(value));
+            _firstName = value.Trim();
+        }
     }
 
     public string LastName
     {
         get => _lastName;
-        set => _lastName = value;
+        set
+        {
+            if (string.IsNullOrWhiteSpace(value) || value.Length > 50)
+                throw new ArgumentException("Прізвище не може бути порожнім або довшим за 50 символів.", nameof(value));
+            _lastName = value.Trim();
+        }
     }
 
     public DateTime DateOfBirth
     {
         get => _dateOfBirth;
-        set => _dateOfBirth = value;
+        set
+        {
+            if (value > DateTime.Today || value.Year < 1900)
+                throw new ArgumentOutOfRangeException(nameof(value), "Дата народження не може бути в майбутньому або раніше 1900 року.");
+            _dateOfBirth = value;
+        }
     }
 
     public string Phone
     {
         get => _phone;
-        set => _phone = value;
+        set
+        {
+            if (string.IsNullOrWhiteSpace(value) || value.Length != 10 || !long.TryParse(value, out _))
+                throw new ArgumentException("Номер телефону має складатися з 10 цифр.", nameof(value));
+            _phone = value;
+        }
     }
 
     public string Email

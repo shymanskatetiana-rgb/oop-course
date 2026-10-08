@@ -19,25 +19,45 @@ public class Doctor
     public string FirstName
     {
         get => _firstName;
-        set => _firstName = value;
+        set
+        {
+            if (string.IsNullOrWhiteSpace(value) || value.Length > 50)
+                throw new ArgumentException("Ім'я не може бути порожнім або довшим за 50 символів.", nameof(value));
+            _firstName = value.Trim();
+        }
     }
 
     public string LastName
     {
         get => _lastName;
-        set => _lastName = value;
+        set
+        {
+            if (string.IsNullOrWhiteSpace(value) || value.Length > 50)
+                throw new ArgumentException("Прізвище не може бути порожнім або довшим за 50 символів.", nameof(value));
+            _lastName = value.Trim();
+        }
     }
 
     public string LicenseNumber
     {
         get => _licenseNumber;
-        set => _licenseNumber = value;
+        set
+        {
+            if (string.IsNullOrWhiteSpace(value))
+                throw new ArgumentException("Номер ліцензії не може бути порожнім.",  nameof(value));
+            _licenseNumber = value.Trim();
+        }
     }
 
     public string Phone
     {
         get => _phone;
-        set => _phone = value;
+        set
+        {
+            if (string.IsNullOrWhiteSpace(value) || value.Length != 10 || !long.TryParse(value, out _))
+                throw new ArgumentException("Номер телефону має складатися з 10 цифр.", nameof(value));
+            _phone = value;
+        }
     }
 
     public string FullName
