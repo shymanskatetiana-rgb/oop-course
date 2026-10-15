@@ -31,7 +31,6 @@ public class Clinic
         Doctor[] allDoctors = Doctors.GetAll();
         Appointment[] upcoming = Appointments.GetUpcoming();
 
-        // Якщо дати в прикладі виявилися в минулому відносно годинника — беремо активні записи
         if (upcoming.Length == 0 && Appointments.Count > 0)
         {
             int schedCount = 0;
