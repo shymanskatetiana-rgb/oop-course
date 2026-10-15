@@ -10,6 +10,7 @@ public class Clinic
     public PatientManager Patients { get; }
     public DoctorManager Doctors { get; }
     public AppointmentManager Appointments { get; }
+    public MedicalRecordManager MedicalRecords { get; }
 
     public Clinic(string name)
     {
@@ -17,6 +18,7 @@ public class Clinic
         Patients = new PatientManager();
         Doctors = new DoctorManager();
         Appointments = new AppointmentManager(Patients, Doctors);
+        MedicalRecords = new MedicalRecordManager();
     }
 
     public void DisplaySchedule(DateTime date)
@@ -30,25 +32,6 @@ public class Clinic
     {
         Doctor[] allDoctors = Doctors.GetAll();
         Appointment[] upcoming = Appointments.GetUpcoming();
-
-        if (upcoming.Length == 0 && Appointments.Count > 0)
-        {
-            int schedCount = 0;
-            for (int i = 1; i <= 3; i++)
-            {
-                var byP = Appointments.GetByPatient(i);
-                if (byP.Length > 0 && byP[0].Status == AppointmentStatus.Scheduled) schedCount++;
-            }
-            if (schedCount > 0)
-            {
-                upcoming = new Appointment[]
-                {
-                    Appointments.GetByPatient(1)[0],
-                    Appointments.GetByPatient(2)[0],
-                    Appointments.GetByPatient(3)[0]
-                };
-            }
-        }
 
         Console.WriteLine("╔══════════════════════════════════════════════╗");
         Console.WriteLine($"║  Звіт — {Name,-37}║");
