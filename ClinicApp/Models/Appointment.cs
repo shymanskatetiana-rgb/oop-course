@@ -5,7 +5,7 @@ using ClinicApp.Interfaces;
 
 namespace ClinicApp.Models;
 
-public class Appointment : IPayable
+public class Appointment : IPayable, ICancellable
 {
     private static int _nextId = 1;
     private DateTime _scheduledAt;
@@ -55,6 +55,21 @@ public class Appointment : IPayable
         Id = _nextId++;
     }
 
+    public bool IsCancelled
+    {
+        get { return Status == AppointmentStatus.Cancelled; }
+    }
+
+    public string CancellationReason
+    {
+        get
+        {
+            if (IsCancelled)
+                return Notes;
+            return "";
+        }
+    }
+
     public decimal GetCost()
     {
         return DurationMinutes * 10m;
@@ -67,7 +82,7 @@ public class Appointment : IPayable
 
     public void MarkPaid()
     {
-        if (Status != AppointmentStatus.Cancelled)
+        if (!IsCancelled)
         {
             _isPaid = true;
         }
