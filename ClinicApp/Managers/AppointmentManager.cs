@@ -198,6 +198,16 @@ public class AppointmentManager
         return result;
     }
 
+    public Appointment[] GetAll()
+    {
+        Appointment[] result = new Appointment[_count];
+        for (int i = 0; i < _count; i++)
+        {
+            result[i] = _appointments[i];
+        }
+        return result;
+    }
+
     public void DisplayAppointment(Appointment app)
     {
         Patient? patient = _patients.FindById(app.PatientId);
