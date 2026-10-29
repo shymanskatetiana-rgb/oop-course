@@ -319,6 +319,7 @@ static void RunAppointmentMenu(AppointmentManager appManager, PatientManager pMa
         Console.WriteLine("3. Створити запис");
         Console.WriteLine("4. Скасувати запис");
         Console.WriteLine("8. Скасувати всі записи пацієнта");
+        Console.WriteLine("9. За типом прийому");
         Console.WriteLine("0. Назад");
         Console.Write("Ваш вибір: ");
 
@@ -391,6 +392,33 @@ static void RunAppointmentMenu(AppointmentManager appManager, PatientManager pMa
                 Appointment[] patApps = appManager.GetByPatient(patId);
                 int cancelled = AppointmentManager.CancelAll(patApps, reason8);
                 Console.WriteLine($"Скасовано записів: {cancelled}");
+                break;
+            case "9":
+                Console.WriteLine("1. Термінові");
+                Console.WriteLine("2. Консультації спеціаліста");
+                Console.WriteLine("3. Звичайні");
+                Console.Write("Оберіть тип: ");
+                string typeChoice = Console.ReadLine() ?? "";
+
+                if (typeChoice == "1")
+                {
+                    Appointment[] urgent = appManager.GetUrgent();
+                    appManager.DisplayList(urgent);
+                }
+                else if (typeChoice == "2")
+                {
+                    Appointment[] specialist = appManager.GetSpecialist();
+                    appManager.DisplayList(specialist);
+                }
+                else if (typeChoice == "3")
+                {
+                    Appointment[] regular = appManager.GetRegular();
+                    appManager.DisplayList(regular);
+                }
+                else
+                {
+                    Console.WriteLine("Невірний вибір.");
+                }
                 break;
         }  
     }

@@ -243,8 +243,8 @@ public class AppointmentManager
 
         string patientName = patient != null ? patient.FullName : $"Ïàö³ºíò #{app.PatientId}";
         string doctorName = doctor != null ? doctor.FullName : $"Ë³êàð #{app.DoctorId}";
+        string line = $"[{app.Id}] {app.GetDescription()} | {patientName} \u2192 {doctorName} | {app.ScheduledAt:dd.MM.yyyy HH:mm}–{app.EndsAt:HH:mm} | {app.Status} | {app.GetCost():F2} ãðí";
 
-        string line = $"[{app.Id}] {patientName} \u2192 {doctorName} | {app.ScheduledAt:dd.MM.yyyy HH:mm}–{app.EndsAt:HH:mm} | {app.Status}";
         if (app.Notes.Length > 0)
         {
             line += $" | {app.Notes}";
@@ -266,4 +266,63 @@ public class AppointmentManager
         }
     }
 
+    public Appointment[] GetUrgent()
+    {
+        int count = 0;
+        for (int i = 0; i < _count; i++)
+        {
+            if (_appointments[i] is UrgentAppointment) count++;
+        }
+        Appointment[] result = new Appointment[count];
+        int index = 0;
+        for (int i = 0; i < _count; i++)
+        {
+            if (_appointments[i] is UrgentAppointment)
+            {
+                result[index] = _appointments[i];
+                index++;
+            }
+        }
+        return result;
+    }
+
+    public Appointment[] GetSpecialist()
+    {
+        int count = 0;
+        for (int i = 0; i < _count; i++)
+        {
+            if (_appointments[i] is SpecialistAppointment) count++;
+        }
+        Appointment[] result = new Appointment[count];
+        int index = 0;
+        for (int i = 0; i < _count; i++)
+        {
+            if (_appointments[i] is SpecialistAppointment)
+            {
+                result[index] = _appointments[i];
+                index++;
+            }
+        }
+        return result;
+    }
+
+    public Appointment[] GetRegular()
+    {
+        int count = 0;
+        for (int i = 0; i < _count; i++)
+        {
+            if (_appointments[i] is RegularAppointment) count++;
+        }
+        Appointment[] result = new Appointment[count];
+        int index = 0;
+        for (int i = 0; i < _count; i++)
+        {
+            if (_appointments[i] is RegularAppointment)
+            {
+                result[index] = _appointments[i];
+                index++;
+            }
+        }
+        return result;
+    }
 }
