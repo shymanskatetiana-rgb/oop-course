@@ -24,7 +24,8 @@ clinic.Doctors.Add(new Doctor("Наталія", "Мороз", Speciality.Neurolo
 clinic.Doctors.Add(new Doctor("Андрій", "Власенко", Speciality.Pediatrics, "LIC-003", "0443456789"));
 
 clinic.Appointments.Book(1, 1, DateTime.Today.AddHours(10), 30);
-clinic.Appointments.Book(2, 2, DateTime.Today.AddHours(11), 45);
+clinic.Appointments.BookUrgent(2, 2, DateTime.Today.AddHours(11), "біль у грудях", 45);
+clinic.Appointments.BookSpecialist(3, 3, DateTime.Today.AddHours(12), "кардіологія", 60);
 
 WorkSchedule morning = new WorkSchedule(8, 16);
 WorkSchedule copy = morning;
@@ -61,6 +62,17 @@ clinic.MedicalRecords.Add(new Prescription(2, 2, DateTime.Today.AddDays(-40), "�
 
 // Пацієнт #3 — один запис (для перевірки, що порожніх розділів немає)
 clinic.MedicalRecords.Add(new Diagnosis(3, 3, DateTime.Today.AddDays(-3), "K29.7", "Гастрит", false));
+
+Console.WriteLine("\n== new vs override ==");
+UrgentAppointment urgentObj = new UrgentAppointment(1, 1, DateTime.Today, "тест");
+Appointment appObj = urgentObj;
+
+Console.WriteLine($"Через Appointment: {appObj.GetDescription()} | пріоритет {appObj.GetPriority()}");
+Console.WriteLine($"Через UrgentAppointment: {urgentObj.GetDescription()} | пріоритет {urgentObj.GetPriority()}");
+
+// 1. GetDescription() дає "Терміновий", бо він virtual/override.
+// 2. GetPriority() дає 3, бо він прихований через new (дивиться на тип змінної).
+// 3. Для поліморфізму GetPriority треба зробити його virtual в Appointment і override в UrgentAppointment.
 
 RunMainMenu(clinic);
 
@@ -380,294 +392,294 @@ static void RunAppointmentMenu(AppointmentManager appManager, PatientManager pMa
                 int cancelled = AppointmentManager.CancelAll(patApps, reason8);
                 Console.WriteLine($"Скасовано записів: {cancelled}");
                 break;
-        }
+        }  
     }
 }
 
-static void RunBillingMenu(Clinic clinic)
-{
-    while (true)
+    static void RunBillingMenu(Clinic clinic)
     {
-        Console.WriteLine("\n--- Меню «Рахунки» ---");
-        Console.WriteLine("1. Борги пацієнта");
-        Console.WriteLine("2. Всі неоплачені записи");
-        Console.WriteLine("3. Оплатити запис");
-        Console.WriteLine("4. Загальний борг клініки");
-        Console.WriteLine("0. Назад");
-        Console.Write("Ваш вибір: ");
-
-        string? choice = Console.ReadLine();
-        if (choice == "0" || string.IsNullOrEmpty(choice)) break;
-
-        switch (choice)
+        while (true)
         {
-            case "1":
-                Console.Write("ID пацієнта: ");
-                if (int.TryParse(Console.ReadLine(), out int pId))
-                {
-                    IPayable[] unpaid = clinic.Billing.GetUnpaidByPatient(pId);
-                    clinic.Billing.DisplayUnpaid(unpaid);
-                    Console.WriteLine($"Борг: {clinic.Billing.GetPatientDebt(pId).ToString("F2")} грн");
-                }
-                break;
-            case "2":
-                clinic.Billing.DisplayUnpaid(clinic.Billing.GetAllUnpaid());
-                break;
-            case "3":
-                Console.Write("ID запису для оплати: ");
-                if (int.TryParse(Console.ReadLine(), out int appId))
-                {
-                    if (clinic.Billing.PayAppointment(appId))
-                        Console.WriteLine("Запис оплачено.");
+            Console.WriteLine("\n--- Меню «Рахунки» ---");
+            Console.WriteLine("1. Борги пацієнта");
+            Console.WriteLine("2. Всі неоплачені записи");
+            Console.WriteLine("3. Оплатити запис");
+            Console.WriteLine("4. Загальний борг клініки");
+            Console.WriteLine("0. Назад");
+            Console.Write("Ваш вибір: ");
+
+            string? choice = Console.ReadLine();
+            if (choice == "0" || string.IsNullOrEmpty(choice)) break;
+
+            switch (choice)
+            {
+                case "1":
+                    Console.Write("ID пацієнта: ");
+                    if (int.TryParse(Console.ReadLine(), out int pId))
+                    {
+                        IPayable[] unpaid = clinic.Billing.GetUnpaidByPatient(pId);
+                        clinic.Billing.DisplayUnpaid(unpaid);
+                        Console.WriteLine($"Борг: {clinic.Billing.GetPatientDebt(pId).ToString("F2")} грн");
+                    }
+                    break;
+                case "2":
+                    clinic.Billing.DisplayUnpaid(clinic.Billing.GetAllUnpaid());
+                    break;
+                case "3":
+                    Console.Write("ID запису для оплати: ");
+                    if (int.TryParse(Console.ReadLine(), out int appId))
+                    {
+                        if (clinic.Billing.PayAppointment(appId))
+                            Console.WriteLine("Запис оплачено.");
+                        else
+                            Console.WriteLine("Не вдалося оплатити: запис не знайдено, вже оплачено або скасовано.");
+                    }
+                    break;
+                case "4":
+                    Console.WriteLine($"Загальний борг по клініці: {clinic.Billing.GetTotalDebt().ToString("F2")} грн");
+                    break;
+            }
+        }
+    }
+
+    static void RunMedicalRecordsMenu(Clinic clinic)
+    {
+        while (true)
+        {
+            Console.WriteLine("\n--- Меню «Медична картка» ---");
+            Console.WriteLine("1. Картка пацієнта (зведення)");
+            Console.WriteLine("2. Усі записи пацієнта");
+            Console.WriteLine("3. Додати діагноз");
+            Console.WriteLine("4. Додати аналіз");
+            Console.WriteLine("5. Додати рецепт");
+            Console.WriteLine("6. Записи лікаря");
+            Console.WriteLine("0. Назад");
+            Console.Write("Ваш вибір: ");
+
+            string? choice = Console.ReadLine();
+            if (choice == "0" || string.IsNullOrEmpty(choice)) break;
+
+            switch (choice)
+            {
+                case "1":
+                    Console.Write("ID пацієнта: ");
+                    if (int.TryParse(Console.ReadLine(), out int id1))
+                    {
+                        clinic.MedicalRecords.DisplayPatientSummary(id1);
+                    }
                     else
-                        Console.WriteLine("Не вдалося оплатити: запис не знайдено, вже оплачено або скасовано.");
-                }
-                break;
-            case "4":
-                Console.WriteLine($"Загальний борг по клініці: {clinic.Billing.GetTotalDebt().ToString("F2")} грн");
-                break;
+                    {
+                        Console.WriteLine("Помилка: введіть ціле число.");
+                    }
+                    break;
+
+                case "2":
+                    Console.Write("ID пацієнта: ");
+                    if (int.TryParse(Console.ReadLine(), out int id2))
+                    {
+                        MedicalRecord[] recs = clinic.MedicalRecords.GetByPatient(id2);
+                        clinic.MedicalRecords.DisplayList(recs);
+                    }
+                    else
+                    {
+                        Console.WriteLine("Помилка: введіть ціле число.");
+                    }
+                    break;
+
+                case "3":
+                    AddDiagnosis(clinic);
+                    break;
+
+                case "4":
+                    AddLabResult(clinic);
+                    break;
+
+                case "5":
+                    AddPrescription(clinic);
+                    break;
+
+                case "6":
+                    Console.Write("ID лікаря: ");
+                    if (int.TryParse(Console.ReadLine(), out int id6))
+                    {
+                        MedicalRecord[] recs = clinic.MedicalRecords.GetByDoctor(id6);
+                        clinic.MedicalRecords.DisplayList(recs);
+                    }
+                    else
+                    {
+                        Console.WriteLine("Помилка: введіть ціле число.");
+                    }
+                    break;
+            }
         }
     }
-}
 
-static void RunMedicalRecordsMenu(Clinic clinic)
-{
-    while (true)
+    static void AddDiagnosis(Clinic clinic)
     {
-        Console.WriteLine("\n--- Меню «Медична картка» ---");
-        Console.WriteLine("1. Картка пацієнта (зведення)");
-        Console.WriteLine("2. Усі записи пацієнта");
-        Console.WriteLine("3. Додати діагноз");
-        Console.WriteLine("4. Додати аналіз");
-        Console.WriteLine("5. Додати рецепт");
-        Console.WriteLine("6. Записи лікаря");
-        Console.WriteLine("0. Назад");
-        Console.Write("Ваш вибір: ");
-
-        string? choice = Console.ReadLine();
-        if (choice == "0" || string.IsNullOrEmpty(choice)) break;
-
-        switch (choice)
+        Console.Write("ID пацієнта: ");
+        if (!int.TryParse(Console.ReadLine(), out int pId))
         {
-            case "1":
-                Console.Write("ID пацієнта: ");
-                if (int.TryParse(Console.ReadLine(), out int id1))
-                {
-                    clinic.MedicalRecords.DisplayPatientSummary(id1);
-                }
-                else
-                {
-                    Console.WriteLine("Помилка: введіть ціле число.");
-                }
-                break;
+            Console.WriteLine("Помилка: введіть ціле число.");
+            return;
+        }
+        if (clinic.Patients.FindById(pId) == null)
+        {
+            Console.WriteLine($"Пацієнта #{pId} не знайдено.");
+            return;
+        }
 
-            case "2":
-                Console.Write("ID пацієнта: ");
-                if (int.TryParse(Console.ReadLine(), out int id2))
-                {
-                    MedicalRecord[] recs = clinic.MedicalRecords.GetByPatient(id2);
-                    clinic.MedicalRecords.DisplayList(recs);
-                }
-                else
-                {
-                    Console.WriteLine("Помилка: введіть ціле число.");
-                }
-                break;
+        Console.Write("ID лікаря: ");
+        if (!int.TryParse(Console.ReadLine(), out int dId))
+        {
+            Console.WriteLine("Помилка: введіть ціле число.");
+            return;
+        }
+        if (clinic.Doctors.FindById(dId) == null)
+        {
+            Console.WriteLine($"Лікаря #{dId} не знайдено.");
+            return;
+        }
 
-            case "3":
-                AddDiagnosis(clinic);
-                break;
+        Console.Write("Код діагнозу (напр. J06.9): ");
+        string code = Console.ReadLine() ?? "";
 
-            case "4":
-                AddLabResult(clinic);
-                break;
+        Console.Write("Опис: ");
+        string desc = Console.ReadLine() ?? "";
 
-            case "5":
-                AddPrescription(clinic);
-                break;
+        Console.Write("Хронічне? (1=так, 0=ні): ");
+        int.TryParse(Console.ReadLine(), out int chronicInt);
+        bool isChronic = chronicInt == 1;
 
-            case "6":
-                Console.Write("ID лікаря: ");
-                if (int.TryParse(Console.ReadLine(), out int id6))
-                {
-                    MedicalRecord[] recs = clinic.MedicalRecords.GetByDoctor(id6);
-                    clinic.MedicalRecords.DisplayList(recs);
-                }
-                else
-                {
-                    Console.WriteLine("Помилка: введіть ціле число.");
-                }
-                break;
+        try
+        {
+            Diagnosis d = new Diagnosis(pId, dId, DateTime.Today, code, desc, isChronic);
+            clinic.MedicalRecords.Add(d);
+        }
+        catch (ArgumentOutOfRangeException ex)
+        {
+            Console.WriteLine($"Помилка: {ex.Message}");
+        }
+        catch (ArgumentException ex)
+        {
+            Console.WriteLine($"Помилка: {ex.Message}");
         }
     }
-}
 
-static void AddDiagnosis(Clinic clinic)
-{
-    Console.Write("ID пацієнта: ");
-    if (!int.TryParse(Console.ReadLine(), out int pId))
+    static void AddLabResult(Clinic clinic)
     {
-        Console.WriteLine("Помилка: введіть ціле число.");
-        return;
-    }
-    if (clinic.Patients.FindById(pId) == null)
-    {
-        Console.WriteLine($"Пацієнта #{pId} не знайдено.");
-        return;
-    }
+        Console.Write("ID пацієнта: ");
+        if (!int.TryParse(Console.ReadLine(), out int pId))
+        {
+            Console.WriteLine("Помилка: введіть ціле число.");
+            return;
+        }
+        if (clinic.Patients.FindById(pId) == null)
+        {
+            Console.WriteLine($"Пацієнта #{pId} не знайдено.");
+            return;
+        }
 
-    Console.Write("ID лікаря: ");
-    if (!int.TryParse(Console.ReadLine(), out int dId))
-    {
-        Console.WriteLine("Помилка: введіть ціле число.");
-        return;
-    }
-    if (clinic.Doctors.FindById(dId) == null)
-    {
-        Console.WriteLine($"Лікаря #{dId} не знайдено.");
-        return;
-    }
+        Console.Write("ID лікаря: ");
+        if (!int.TryParse(Console.ReadLine(), out int dId))
+        {
+            Console.WriteLine("Помилка: введіть ціле число.");
+            return;
+        }
+        if (clinic.Doctors.FindById(dId) == null)
+        {
+            Console.WriteLine($"Лікаря #{dId} не знайдено.");
+            return;
+        }
 
-    Console.Write("Код діагнозу (напр. J06.9): ");
-    string code = Console.ReadLine() ?? "";
+        Console.Write("Назва аналізу: ");
+        string testName = Console.ReadLine() ?? "";
 
-    Console.Write("Опис: ");
-    string desc = Console.ReadLine() ?? "";
+        Console.Write("Значення (число з крапкою): ");
+        string valueStr = Console.ReadLine() ?? "";
+        if (!double.TryParse(valueStr, NumberStyles.Float, CultureInfo.InvariantCulture, out double value))
+        {
+            Console.WriteLine("Помилка: некоректне число. Використовуйте крапку: 6.2");
+            return;
+        }
 
-    Console.Write("Хронічне? (1=так, 0=ні): ");
-    int.TryParse(Console.ReadLine(), out int chronicInt);
-    bool isChronic = chronicInt == 1;
+        Console.Write("Одиниці виміру: ");
+        string unit = Console.ReadLine() ?? "";
 
-    try
-    {
-        Diagnosis d = new Diagnosis(pId, dId, DateTime.Today, code, desc, isChronic);
-        clinic.MedicalRecords.Add(d);
-    }
-    catch (ArgumentOutOfRangeException ex)
-    {
-        Console.WriteLine($"Помилка: {ex.Message}");
-    }
-    catch (ArgumentException ex)
-    {
-        Console.WriteLine($"Помилка: {ex.Message}");
-    }
-}
+        Console.Write("Норма (напр. 4.0-9.0): ");
+        string refRange = Console.ReadLine() ?? "";
 
-static void AddLabResult(Clinic clinic)
-{
-    Console.Write("ID пацієнта: ");
-    if (!int.TryParse(Console.ReadLine(), out int pId))
-    {
-        Console.WriteLine("Помилка: введіть ціле число.");
-        return;
-    }
-    if (clinic.Patients.FindById(pId) == null)
-    {
-        Console.WriteLine($"Пацієнта #{pId} не знайдено.");
-        return;
+        Console.Write("В нормі? (1=так, 0=ні): ");
+        int.TryParse(Console.ReadLine(), out int normalInt);
+        bool isNormal = normalInt == 1;
+
+        try
+        {
+            LabResult lr = new LabResult(pId, dId, DateTime.Today, testName, value, unit, refRange, isNormal);
+            clinic.MedicalRecords.Add(lr);
+        }
+        catch (ArgumentOutOfRangeException ex)
+        {
+            Console.WriteLine($"Помилка: {ex.Message}");
+        }
+        catch (ArgumentException ex)
+        {
+            Console.WriteLine($"Помилка: {ex.Message}");
+        }
     }
 
-    Console.Write("ID лікаря: ");
-    if (!int.TryParse(Console.ReadLine(), out int dId))
+    static void AddPrescription(Clinic clinic)
     {
-        Console.WriteLine("Помилка: введіть ціле число.");
-        return;
-    }
-    if (clinic.Doctors.FindById(dId) == null)
-    {
-        Console.WriteLine($"Лікаря #{dId} не знайдено.");
-        return;
-    }
+        Console.Write("ID пацієнта: ");
+        if (!int.TryParse(Console.ReadLine(), out int pId))
+        {
+            Console.WriteLine("Помилка: введіть ціле число.");
+            return;
+        }
+        if (clinic.Patients.FindById(pId) == null)
+        {
+            Console.WriteLine($"Пацієнта #{pId} не знайдено.");
+            return;
+        }
 
-    Console.Write("Назва аналізу: ");
-    string testName = Console.ReadLine() ?? "";
+        Console.Write("ID лікаря: ");
+        if (!int.TryParse(Console.ReadLine(), out int dId))
+        {
+            Console.WriteLine("Помилка: введіть ціле число.");
+            return;
+        }
+        if (clinic.Doctors.FindById(dId) == null)
+        {
+            Console.WriteLine($"Лікаря #{dId} не знайдено.");
+            return;
+        }
 
-    Console.Write("Значення (число з крапкою): ");
-    string valueStr = Console.ReadLine() ?? "";
-    if (!double.TryParse(valueStr, NumberStyles.Float, CultureInfo.InvariantCulture, out double value))
-    {
-        Console.WriteLine("Помилка: некоректне число. Використовуйте крапку: 6.2");
-        return;
-    }
+        Console.Write("Препарат: ");
+        string med = Console.ReadLine() ?? "";
 
-    Console.Write("Одиниці виміру: ");
-    string unit = Console.ReadLine() ?? "";
+        Console.Write("Дозування (напр. 10 мг): ");
+        string dosage = Console.ReadLine() ?? "";
 
-    Console.Write("Норма (напр. 4.0-9.0): ");
-    string refRange = Console.ReadLine() ?? "";
+        Console.Write("Кількість днів: ");
+        if (!int.TryParse(Console.ReadLine(), out int days))
+        {
+            Console.WriteLine("Помилка: введіть ціле число.");
+            return;
+        }
 
-    Console.Write("В нормі? (1=так, 0=ні): ");
-    int.TryParse(Console.ReadLine(), out int normalInt);
-    bool isNormal = normalInt == 1;
+        Console.Write("Інструкція (Enter — пропустити): ");
+        string instructions = Console.ReadLine() ?? "";
 
-    try
-    {
-        LabResult lr = new LabResult(pId, dId, DateTime.Today, testName, value, unit, refRange, isNormal);
-        clinic.MedicalRecords.Add(lr);
+        try
+        {
+            Prescription p = new Prescription(pId, dId, DateTime.Today, med, dosage, days, instructions);
+            clinic.MedicalRecords.Add(p);
+        }
+        catch (ArgumentOutOfRangeException ex)
+        {
+            Console.WriteLine($"Помилка: {ex.Message}");
+        }
+        catch (ArgumentException ex)
+        {
+            Console.WriteLine($"Помилка: {ex.Message}");
+        }
     }
-    catch (ArgumentOutOfRangeException ex)
-    {
-        Console.WriteLine($"Помилка: {ex.Message}");
-    }
-    catch (ArgumentException ex)
-    {
-        Console.WriteLine($"Помилка: {ex.Message}");
-    }
-}
-
-static void AddPrescription(Clinic clinic)
-{
-    Console.Write("ID пацієнта: ");
-    if (!int.TryParse(Console.ReadLine(), out int pId))
-    {
-        Console.WriteLine("Помилка: введіть ціле число.");
-        return;
-    }
-    if (clinic.Patients.FindById(pId) == null)
-    {
-        Console.WriteLine($"Пацієнта #{pId} не знайдено.");
-        return;
-    }
-
-    Console.Write("ID лікаря: ");
-    if (!int.TryParse(Console.ReadLine(), out int dId))
-    {
-        Console.WriteLine("Помилка: введіть ціле число.");
-        return;
-    }
-    if (clinic.Doctors.FindById(dId) == null)
-    {
-        Console.WriteLine($"Лікаря #{dId} не знайдено.");
-        return;
-    }
-
-    Console.Write("Препарат: ");
-    string med = Console.ReadLine() ?? "";
-
-    Console.Write("Дозування (напр. 10 мг): ");
-    string dosage = Console.ReadLine() ?? "";
-
-    Console.Write("Кількість днів: ");
-    if (!int.TryParse(Console.ReadLine(), out int days))
-    {
-        Console.WriteLine("Помилка: введіть ціле число.");
-        return;
-    }
-
-    Console.Write("Інструкція (Enter — пропустити): ");
-    string instructions = Console.ReadLine() ?? "";
-
-    try
-    {
-        Prescription p = new Prescription(pId, dId, DateTime.Today, med, dosage, days, instructions);
-        clinic.MedicalRecords.Add(p);
-    }
-    catch (ArgumentOutOfRangeException ex)
-    {
-        Console.WriteLine($"Помилка: {ex.Message}");
-    }
-    catch (ArgumentException ex)
-    {
-        Console.WriteLine($"Помилка: {ex.Message}");
-    }
-}
