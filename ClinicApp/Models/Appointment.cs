@@ -70,9 +70,24 @@ public class Appointment : IPayable, ICancellable
         }
     }
 
-    public decimal GetCost()
+    // Обрано Варіант А (множник знижки в базовому класі).
+    // Це дозволяє застосовувати знижку до БУДЬ-ЯКОГО типу прийому (і звичайного, і термінового, і консультації),
+    // не створюючи купу нових підкласів (VipUrgent, VipSpecialist), що порушувало б принцип Open/Closed.
+    public decimal DiscountMultiplier { get; set; } = 1m;
+
+    public virtual decimal GetCost()
     {
-        return DurationMinutes * 10m;
+        return (DurationMinutes * 10m) * DiscountMultiplier;
+    }
+
+    public virtual string GetDescription()
+    {
+        return "Прийом";
+    }
+
+    public int GetPriority()
+    {
+        return 3;
     }
 
     public bool IsPaid
@@ -114,7 +129,8 @@ public class Appointment : IPayable, ICancellable
 
     public override string ToString()
     {
-        string result = $"[{Id}] Пацієнт #{PatientId} → Лікар #{DoctorId} | {ScheduledAt:dd.MM.yyyy HH:mm}–{EndsAt:HH:mm} | {Status}";
+        string result = $"[{Id}] {GetDescription()} | Пацієнт #{PatientId} → Лікар #{DoctorId} | {ScheduledAt:dd.MM.yyyy HH:mm}–{EndsAt:HH:mm} | {Status} | {GetCost():F2} грн";
+
         if (Notes.Length > 0)
         {
             result += $" | {Notes}";

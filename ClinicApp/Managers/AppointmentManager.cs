@@ -57,27 +57,41 @@ public class AppointmentManager
 
     public bool Book(int patientId, int doctorId, DateTime scheduledAt, int durationMinutes = 30)
     {
+        return AddAppointment(new RegularAppointment(patientId, doctorId, scheduledAt, durationMinutes));
+    }
+
+    public bool BookUrgent(int patientId, int doctorId, DateTime scheduledAt, string urgencyNote = "", int durationMinutes = 30)
+    {
+        return AddAppointment(new UrgentAppointment(patientId, doctorId, scheduledAt, urgencyNote, durationMinutes));
+    }
+
+    public bool BookSpecialist(int patientId, int doctorId, DateTime scheduledAt, string topic = "", int durationMinutes = 45)
+    {
+        return AddAppointment(new SpecialistAppointment(patientId, doctorId, scheduledAt, topic, durationMinutes));
+    }
+
+    private bool AddAppointment(Appointment app)
+    {
         if (_count >= MaxAppointments)
         {
             Console.WriteLine("Помилка: досягнуто ліміту записів.");
             return false;
         }
 
-        Patient? patient = _patients.FindById(patientId);
+        Patient? patient = _patients.FindById(app.PatientId);
         if (patient == null)
         {
-            Console.WriteLine($"Помилка: пацієнта з ID {patientId} не знайдено.");
+            Console.WriteLine($"Помилка: пацієнта з ID {app.PatientId} не знайдено.");
             return false;
         }
 
-        Doctor? doctor = _doctors.FindById(doctorId);
+        Doctor? doctor = _doctors.FindById(app.DoctorId);
         if (doctor == null)
         {
-            Console.WriteLine($"Помилка: лікаря з ID {doctorId} не знайдено.");
+            Console.WriteLine($"Помилка: лікаря з ID {app.DoctorId} не знайдено.");
             return false;
         }
 
-        Appointment app = new Appointment(patientId, doctorId, scheduledAt, durationMinutes);
         _appointments[_count] = app;
         _count++;
         return true;
@@ -229,8 +243,8 @@ public class AppointmentManager
 
         string patientName = patient != null ? patient.FullName : $"Пацієнт #{app.PatientId}";
         string doctorName = doctor != null ? doctor.FullName : $"Лікар #{app.DoctorId}";
+        string line = $"[{app.Id}] {app.GetDescription()} | {patientName} \u2192 {doctorName} | {app.ScheduledAt:dd.MM.yyyy HH:mm}–{app.EndsAt:HH:mm} | {app.Status} | {app.GetCost():F2} грн";
 
-        string line = $"[{app.Id}] {patientName} \u2192 {doctorName} | {app.ScheduledAt:dd.MM.yyyy HH:mm}–{app.EndsAt:HH:mm} | {app.Status}";
         if (app.Notes.Length > 0)
         {
             line += $" | {app.Notes}";
@@ -250,5 +264,65 @@ public class AppointmentManager
         {
             DisplayAppointment(list[i]);
         }
+    }
+
+    public Appointment[] GetUrgent()
+    {
+        int count = 0;
+        for (int i = 0; i < _count; i++)
+        {
+            if (_appointments[i] is UrgentAppointment) count++;
+        }
+        Appointment[] result = new Appointment[count];
+        int index = 0;
+        for (int i = 0; i < _count; i++)
+        {
+            if (_appointments[i] is UrgentAppointment)
+            {
+                result[index] = _appointments[i];
+                index++;
+            }
+        }
+        return result;
+    }
+
+    public Appointment[] GetSpecialist()
+    {
+        int count = 0;
+        for (int i = 0; i < _count; i++)
+        {
+            if (_appointments[i] is SpecialistAppointment) count++;
+        }
+        Appointment[] result = new Appointment[count];
+        int index = 0;
+        for (int i = 0; i < _count; i++)
+        {
+            if (_appointments[i] is SpecialistAppointment)
+            {
+                result[index] = _appointments[i];
+                index++;
+            }
+        }
+        return result;
+    }
+
+    public Appointment[] GetRegular()
+    {
+        int count = 0;
+        for (int i = 0; i < _count; i++)
+        {
+            if (_appointments[i] is RegularAppointment) count++;
+        }
+        Appointment[] result = new Appointment[count];
+        int index = 0;
+        for (int i = 0; i < _count; i++)
+        {
+            if (_appointments[i] is RegularAppointment)
+            {
+                result[index] = _appointments[i];
+                index++;
+            }
+        }
+        return result;
     }
 }
