@@ -74,6 +74,18 @@ Console.WriteLine($"Через UrgentAppointment: {urgentObj.GetDescription()} |
 // 2. GetPriority() дає 3, бо він прихований через new (дивиться на тип змінної).
 // 3. Для поліморфізму GetPriority треба зробити його virtual в Appointment і override в UrgentAppointment.
 
+// ТЕСТ VIP-ЗНИЖКИ (Задача 5)
+Console.WriteLine("\n== VIP-знижка ==");
+RegularAppointment regularVip = new RegularAppointment(1, 1, DateTime.Today, 30);
+regularVip.DiscountMultiplier = 0.8m;
+Console.WriteLine($"Звичайний VIP (30 хв): {regularVip.GetCost():F2} грн");
+// 300 * 0.8 = 240.00
+
+UrgentAppointment urgentVip = new UrgentAppointment(1, 1, DateTime.Today, "тест", 30);
+urgentVip.DiscountMultiplier = 0.8m;
+Console.WriteLine($"Терміновий VIP (30 хв): {urgentVip.GetCost():F2} грн");
+// (300 * 0.8) * 1.5 = 360.00
+
 RunMainMenu(clinic);
 
 static void RunMainMenu(Clinic clinic)

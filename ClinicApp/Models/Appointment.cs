@@ -70,9 +70,14 @@ public class Appointment : IPayable, ICancellable
         }
     }
 
+    // Обрано Варіант А (множник знижки в базовому класі).
+    // Це дозволяє застосовувати знижку до БУДЬ-ЯКОГО типу прийому (і звичайного, і термінового, і консультації),
+    // не створюючи купу нових підкласів (VipUrgent, VipSpecialist), що порушувало б принцип Open/Closed.
+    public decimal DiscountMultiplier { get; set; } = 1m;
+
     public virtual decimal GetCost()
     {
-        return DurationMinutes * 10m;
+        return (DurationMinutes * 10m) * DiscountMultiplier;
     }
 
     public virtual string GetDescription()
