@@ -100,7 +100,8 @@ static void RunMainMenu(Clinic clinic)
         Console.WriteLine("║ 3. Записи            — прийоми, скасування   ║");
         Console.WriteLine("║ 4. Медична картка    — діагнози, рецепти     ║");
         Console.WriteLine("║ 5. Рахунки           — оплата, борги         ║");
-        Console.WriteLine("║ 6. Звіт              — загальна статистика   ║");
+        Console.WriteLine("║ 6. Черга             — очікування, прийом    ║");
+        Console.WriteLine("║ 7. Звіт              — загальна статистика   ║");
         Console.WriteLine("║ 0. Вихід                                     ║");
         Console.WriteLine("╚══════════════════════════════════════════════╝");
         Console.Write("Ваш вибір: ");
@@ -126,9 +127,11 @@ static void RunMainMenu(Clinic clinic)
                 RunBillingMenu(clinic);
                 break;
             case "6":
+                WaitingRoomMenu(clinic);
+                break;
+            case "7":
                 clinic.GenerateReport();
                 break;
-
         }
     }
 }
@@ -667,59 +670,137 @@ static void RunAppointmentMenu(AppointmentManager appManager, PatientManager pMa
         }
     }
 
-    static void AddPrescription(Clinic clinic)
+static void AddPrescription(Clinic clinic)
+{
+    Console.Write("ID пацієнта: ");
+    if (!int.TryParse(Console.ReadLine(), out int pId))
     {
-        Console.Write("ID пацієнта: ");
-        if (!int.TryParse(Console.ReadLine(), out int pId))
-        {
-            Console.WriteLine("Помилка: введіть ціле число.");
-            return;
-        }
-        if (clinic.Patients.FindById(pId) == null)
-        {
-            Console.WriteLine($"Пацієнта #{pId} не знайдено.");
-            return;
-        }
+        Console.WriteLine("Помилка: введіть ціле число.");
+        return;
+    }
+    if (clinic.Patients.FindById(pId) == null)
+    {
+        Console.WriteLine($"Пацієнта #{pId} не знайдено.");
+        return;
+    }
 
-        Console.Write("ID лікаря: ");
-        if (!int.TryParse(Console.ReadLine(), out int dId))
-        {
-            Console.WriteLine("Помилка: введіть ціле число.");
-            return;
-        }
-        if (clinic.Doctors.FindById(dId) == null)
-        {
-            Console.WriteLine($"Лікаря #{dId} не знайдено.");
-            return;
-        }
+    Console.Write("ID лікаря: ");
+    if (!int.TryParse(Console.ReadLine(), out int dId))
+    {
+        Console.WriteLine("Помилка: введіть ціле число.");
+        return;
+    }
+    if (clinic.Doctors.FindById(dId) == null)
+    {
+        Console.WriteLine($"Лікаря #{dId} не знайдено.");
+        return;
+    }
 
-        Console.Write("Препарат: ");
-        string med = Console.ReadLine() ?? "";
+    Console.Write("Препарат: ");
+    string med = Console.ReadLine() ?? "";
 
-        Console.Write("Дозування (напр. 10 мг): ");
-        string dosage = Console.ReadLine() ?? "";
+    Console.Write("Дозування (напр. 10 мг): ");
+    string dosage = Console.ReadLine() ?? "";
 
-        Console.Write("Кількість днів: ");
-        if (!int.TryParse(Console.ReadLine(), out int days))
-        {
-            Console.WriteLine("Помилка: введіть ціле число.");
-            return;
-        }
+    Console.Write("Кількість днів: ");
+    if (!int.TryParse(Console.ReadLine(), out int days))
+    {
+        Console.WriteLine("Помилка: введіть ціле число.");
+        return;
+    }
 
-        Console.Write("Інструкція (Enter — пропустити): ");
-        string instructions = Console.ReadLine() ?? "";
+    Console.Write("Інструкція (Enter — пропустити): ");
+    string instructions = Console.ReadLine() ?? "";
 
-        try
+    try
+    {
+        Prescription p = new Prescription(pId, dId, DateTime.Today, med, dosage, days, instructions);
+        clinic.MedicalRecords.Add(p);
+    }
+    catch (ArgumentOutOfRangeException ex)
+    {
+        Console.WriteLine($"Помилка: {ex.Message}");
+    }
+    catch (ArgumentException ex)
+    {
+        Console.WriteLine($"Помилка: {ex.Message}");
+    }
+} // <-- ОСЬ ЦЯ ДУЖКА ЗАКРИВАЄ МЕТОД AddPrescription!
+
+// А ОСЬ ТУТ ВЖЕ ЙДЕ НОВИЙ МЕТОД
+static void WaitingRoomMenu(Clinic clinic)
+{
+    while (true)
+    {
+        Console.WriteLine("\n--- Меню «Черга» ---");
+        Console.WriteLine("1. Додати пацієнта до черги");
+        Console.WriteLine("2. Прийняти першого");
+        Console.WriteLine("3. Хто перший?");
+        Console.WriteLine("4. Переглянути всю чергу");
+        Console.WriteLine("0. Назад");
+        Console.Write("Ваш вибір: ");
+
+        string? choice = Console.ReadLine(); // <-- ВИПРАВЛЕНО: один '='
+        if (choice == "0" || string.IsNullOrEmpty(choice)) break; // <-- ВИПРАВЛЕНО: крапка
+
+        switch (choice) // <-- ВИПРАВЛЕНО: прибрано дублікат switch та зайву дужку
         {
-            Prescription p = new Prescription(pId, dId, DateTime.Today, med, dosage, days, instructions);
-            clinic.MedicalRecords.Add(p);
-        }
-        catch (ArgumentOutOfRangeException ex)
-        {
-            Console.WriteLine($"Помилка: {ex.Message}");
-        }
-        catch (ArgumentException ex)
-        {
-            Console.WriteLine($"Помилка: {ex.Message}");
+            case "1":
+                Console.Write("ID пацієнта: ");
+                if (int.TryParse(Console.ReadLine(), out int pId))
+                {
+                    Patient? p = clinic.Patients.FindById(pId);
+                    if (p != null)
+                    {
+                        clinic.WaitingRoom.Enqueue(p);
+                        Console.WriteLine($"Пацієнта {p.FullName} додано до черги.");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Пацієнта не знайдено.");
+                    }
+                }
+                break;
+
+            case "2":
+                try
+                {
+                    Patient first = clinic.WaitingRoom.Dequeue();
+                    Console.WriteLine($"Прийнято: {first.FullName}. У черзі лишилось: {clinic.WaitingRoom.Count}");
+                }
+                catch (InvalidOperationException ex)
+                {
+                    Console.WriteLine($"Помилка: {ex.Message}");
+                }
+                break;
+
+            case "3":
+                try
+                {
+                    Patient first = clinic.WaitingRoom.Peek();
+                    Console.WriteLine($"Перший у черзі: {first.FullName}");
+                }
+                catch (InvalidOperationException ex)
+                {
+                    Console.WriteLine($"Помилка: {ex.Message}");
+                }
+                break;
+
+            case "4":
+                Patient[] queueArr = clinic.WaitingRoom.ToArray();
+                if (queueArr.Length == 0)
+                {
+                    Console.WriteLine("Черга порожня.");
+                }
+                else
+                {
+                    Console.WriteLine("Черга:");
+                    for (int i = 0; i < queueArr.Length; i++)
+                    {
+                        Console.WriteLine($"{i + 1}. {queueArr[i].FullName}");
+                    }
+                }
+                break;
         }
     }
+}
