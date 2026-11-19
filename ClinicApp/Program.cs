@@ -105,6 +105,7 @@ static void RunMainMenu(Clinic clinic)
         Console.WriteLine("║ 6. Черга             — очікування, прийом    ║");
         Console.WriteLine("║ 7. Звіт              — загальна статистика   ║");
         Console.WriteLine("║ 8. Аналітика         — статистика та звіти   ║");
+        Console.WriteLine("║ 9. Плани лікування   — рефлексія, атрибути   ║");
         Console.WriteLine("║ 0. Вихід                                     ║");
         Console.WriteLine("╚══════════════════════════════════════════════╝");
         Console.Write("Ваш вибір: ");
@@ -137,6 +138,9 @@ static void RunMainMenu(Clinic clinic)
                 break;
             case "8":
                 AnalyticsMenu(clinic);
+                break;
+            case "9":
+                RunTreatmentPlanMenu(clinic);
                 break;
         }
     }
@@ -880,3 +884,91 @@ static void AnalyticsMenu(Clinic clinic)
         }
     }
 }
+
+static void RunTreatmentPlanMenu(Clinic clinic)
+{
+    TreatmentPlanManager manager = clinic.TreatmentPlans;
+
+    while (true)
+    {
+        Console.WriteLine("\n── Плани лікування ────────────────────");
+        Console.WriteLine("1. Показати всі плани");
+        Console.WriteLine("2. Додати план лікування");
+        Console.WriteLine("3. Плани пацієнта");
+        Console.WriteLine("4. Активувати план");
+        Console.WriteLine("5. Завершити план");
+        Console.WriteLine("6. Скасувати план");
+        Console.WriteLine("7. Інформація про тип TreatmentPlan");
+        Console.WriteLine("0. Назад");
+        Console.Write("Оберіть: ");
+
+        string? choice = Console.ReadLine();
+        if (choice == "0" || string.IsNullOrEmpty(choice)) break;
+
+        switch (choice)
+        {
+            case "1":
+                manager.DisplayAll();
+                break;
+
+            case "2":
+                TreatmentPlan plan = FormBuilder.Build<TreatmentPlan>();
+                manager.Add(plan);
+                break;
+
+            case "3":
+                Console.Write("ID пацієнта: ");
+                if (!int.TryParse(Console.ReadLine(), out int patientId))
+                {
+                    Console.WriteLine("Помилка: введіть ціле число.");
+                    break;
+                }
+                manager.DisplayList(manager.GetByPatient(patientId));
+                break;
+
+            case "4":
+                PlanTransition(manager, "activate");
+                break;
+
+            case "5":
+                PlanTransition(manager, "complete");
+                break;
+
+            case "6":
+                PlanTransition(manager, "cancel");
+                break;
+
+            case "7":
+                ModelValidator.PrintInfo(typeof(TreatmentPlan));
+                break;
+        }
+    }
+}
+
+static void PlanTransition(TreatmentPlanManager manager, string action)
+{
+    Console.Write("ID плану: ");
+    if (!int.TryParse(Console.ReadLine(), out int id))
+    {
+        Console.WriteLine("Помилка: введіть ціле число.");
+        return;
+    }
+
+    TreatmentPlan? plan = manager.GetById(id);
+    if (plan == null)
+    {
+        Console.WriteLine("План не знайдено.");
+        return;
+    }
+
+    bool moved;
+    if (action == "activate") moved = plan.Activate();
+    else if (action == "complete") moved = plan.Complete();
+    else moved = plan.Cancel();
+
+    if (moved)
+        Console.WriteLine($"Готово. Новий статус: {plan.Status}");
+    else
+        Console.WriteLine("Перехід неможливий для поточного статусу.");
+}
+
