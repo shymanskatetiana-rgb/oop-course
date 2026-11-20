@@ -106,6 +106,7 @@ static void RunMainMenu(Clinic clinic)
         Console.WriteLine("║ 7. Звіт              — загальна статистика   ║");
         Console.WriteLine("║ 8. Аналітика         — статистика та звіти   ║");
         Console.WriteLine("║ 9. Плани лікування   — рефлексія, атрибути   ║");
+        Console.WriteLine("║ 10. Файли            — журнал, звіти, імпорт ║");
         Console.WriteLine("║ 0. Вихід                                     ║");
         Console.WriteLine("╚══════════════════════════════════════════════╝");
         Console.Write("Ваш вибір: ");
@@ -115,14 +116,11 @@ static void RunMainMenu(Clinic clinic)
 
         switch (choice)
         {
-            case "1":
-                RunPatientMenu(clinic.Patients);
+            case "1": RunPatientMenu(clinic); 
                 break;
-            case "2":
-                RunDoctorMenu(clinic.Doctors);
+            case "2": RunDoctorMenu(clinic); 
                 break;
-            case "3":
-                RunAppointmentMenu(clinic.Appointments, clinic.Patients, clinic.Doctors);
+            case "3": RunAppointmentMenu(clinic); 
                 break;
             case "4":
                 RunMedicalRecordsMenu(clinic);
@@ -142,12 +140,17 @@ static void RunMainMenu(Clinic clinic)
             case "9":
                 RunTreatmentPlanMenu(clinic);
                 break;
+            case "10":
+                RunFilesMenu(clinic);
+                break;
         }
     }
 }
 
-static void RunPatientMenu(PatientManager manager)
+static void RunPatientMenu(Clinic clinic)
 {
+    PatientManager manager = clinic.Patients;
+
     while (true)
     {
         Console.WriteLine("\n--- Меню «Пацієнти» ---");
@@ -181,19 +184,24 @@ static void RunPatientMenu(PatientManager manager)
 
                 try
                 {
-                    manager.Add(new Patient(fn, ln, DateTime.Today.AddYears(-20), bt, phone));
+                    Patient newPatient = new Patient(fn, ln, DateTime.Today.AddYears(-20), bt, phone);
+                    manager.Add(newPatient);
                     Console.WriteLine("Пацієнта успішно додано!");
+                    clinic.Logger.LogInfo($"Додано пацієнта #{newPatient.Id}: {newPatient.FullName}");
                 }
                 catch (ArgumentOutOfRangeException ex)
                 {
+                    clinic.Logger.LogWarning(ex.Message);
                     Console.WriteLine($"Помилка у межах даних: {ex.Message}");
                 }
                 catch (ArgumentException ex)
                 {
+                    clinic.Logger.LogWarning(ex.Message);
                     Console.WriteLine($"Помилка введення: {ex.Message}");
                 }
                 catch (Exception ex)
                 {
+                    clinic.Logger.LogWarning(ex.Message);
                     Console.WriteLine($"Несподівана помилка: {ex.Message}");
                 }
                 break;
@@ -219,8 +227,10 @@ static void RunPatientMenu(PatientManager manager)
     }
 }
 
-static void RunDoctorMenu(DoctorManager manager)
+static void RunDoctorMenu(Clinic clinic)
 {
+    DoctorManager manager = clinic.Doctors;
+
     while (true)
     {
         Console.WriteLine("\n--- Меню «Лікарі» ---");
@@ -272,18 +282,22 @@ static void RunDoctorMenu(DoctorManager manager)
                     Doctor newDoctor = new Doctor(dfn, dln, newSpec, lic, dphone);
                     newDoctor.Schedule = schedule;
                     manager.Add(newDoctor);
+                    clinic.Logger.LogInfo($"Додано лікаря #{newDoctor.Id}: {newDoctor.FullName}");
                     Console.WriteLine("Лікаря успішно додано!");
                 }
                 catch (ArgumentOutOfRangeException ex)
                 {
+                    clinic.Logger.LogWarning(ex.Message);
                     Console.WriteLine($"Помилка діапазону: {ex.Message}");
                 }
                 catch (ArgumentException ex)
                 {
+                    clinic.Logger.LogWarning(ex.Message);
                     Console.WriteLine($"Помилка введення: {ex.Message}");
                 }
                 catch (Exception ex)
                 {
+                    clinic.Logger.LogWarning(ex.Message);
                     Console.WriteLine($"Несподівана помилка: {ex.Message}");
                 }
                 break;
@@ -327,6 +341,7 @@ static void RunDoctorMenu(DoctorManager manager)
                 }
                 catch (ArgumentOutOfRangeException ex)
                 {
+                    clinic.Logger.LogWarning(ex.Message);
                     Console.WriteLine($"Помилка: {ex.Message}");
                 }
                 break;
@@ -334,8 +349,12 @@ static void RunDoctorMenu(DoctorManager manager)
     }
 }
 
-static void RunAppointmentMenu(AppointmentManager appManager, PatientManager pManager, DoctorManager dManager)
+static void RunAppointmentMenu(Clinic clinic)
 {
+    AppointmentManager appManager = clinic.Appointments;
+    PatientManager pManager = clinic.Patients;
+    DoctorManager dManager = clinic.Doctors;
+
     while (true)
     {
         Console.WriteLine("\n--- Меню «Записи» ---");
@@ -343,6 +362,7 @@ static void RunAppointmentMenu(AppointmentManager appManager, PatientManager pMa
         Console.WriteLine("2. Записи на сьогодні");
         Console.WriteLine("3. Створити запис");
         Console.WriteLine("4. Скасувати запис");
+        Console.WriteLine("5. Завершити запис");
         Console.WriteLine("8. Скасувати всі записи пацієнта");
         Console.WriteLine("9. За типом прийому");
         Console.WriteLine("0. Назад");
@@ -378,19 +398,25 @@ static void RunAppointmentMenu(AppointmentManager appManager, PatientManager pMa
 
                 try
                 {
-                    appManager.Book(pId, dId, DateTime.Today.AddHours(h), duration);
-                    Console.WriteLine("Запис успішно створено!");
+                    if (appManager.Book(pId, dId, DateTime.Today.AddHours(h), duration))
+                    {
+                        Console.WriteLine("Запис успішно створено!");
+                        clinic.Logger.LogInfo($"Запис створено: пацієнт #{pId} → лікар #{dId}");
+                    }
                 }
                 catch (ArgumentOutOfRangeException ex)
                 {
+                    clinic.Logger.LogWarning(ex.Message);
                     Console.WriteLine($"Помилка часу або тривалості: {ex.Message}");
                 }
                 catch (ArgumentException ex)
                 {
+                    clinic.Logger.LogWarning(ex.Message);
                     Console.WriteLine($"Помилка даних запису: {ex.Message}");
                 }
                 catch (Exception ex)
                 {
+                    clinic.Logger.LogWarning(ex.Message);
                     Console.WriteLine($"Несподівана помилка: {ex.Message}");
                 }
                 break;
@@ -400,8 +426,30 @@ static void RunAppointmentMenu(AppointmentManager appManager, PatientManager pMa
                 {
                     Console.Write("Причина: ");
                     string reason = Console.ReadLine() ?? "";
-                    if (appManager.Cancel(appId, reason)) Console.WriteLine("Запис успішно скасовано.");
-                    else Console.WriteLine("Не вдалося скасувати запис.");
+                    if (appManager.Cancel(appId, reason))
+                    {
+                        Console.WriteLine("Запис успішно скасовано.");
+                        clinic.Logger.LogInfo($"Запис #{appId} скасовано.");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Не вдалося скасувати запис.");
+                    }
+                }
+                break;
+            case "5":
+                Console.Write("ID запису для завершення: ");
+                if (int.TryParse(Console.ReadLine(), out int compId))
+                {
+                    if (appManager.Complete(compId))
+                    {
+                        Console.WriteLine("Запис завершено.");
+                        clinic.Logger.LogInfo($"Запис #{compId} завершено.");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Не вдалося завершити запис.");
+                    }
                 }
                 break;
             case "8":
@@ -417,6 +465,7 @@ static void RunAppointmentMenu(AppointmentManager appManager, PatientManager pMa
                 Appointment[] patApps = appManager.GetByPatient(patId);
                 int cancelled = AppointmentManager.CancelAll(patApps, reason8);
                 Console.WriteLine($"Скасовано записів: {cancelled}");
+                clinic.Logger.LogInfo($"Скасовано {cancelled} записів пацієнта #{patId}.");
                 break;
             case "9":
                 Console.WriteLine("1. Термінові");
@@ -483,9 +532,14 @@ static void RunBillingMenu(Clinic clinic)
                 if (int.TryParse(Console.ReadLine(), out int appId))
                 {
                     if (clinic.Billing.PayAppointment(appId))
+                    {
                         Console.WriteLine("Запис оплачено.");
+                        clinic.Logger.LogInfo($"Оплачено запис #{appId}.");
+                    }
                     else
+                    {
                         Console.WriteLine("Не вдалося оплатити: запис не знайдено, вже оплачено або скасовано.");
+                    }
                 }
                 break;
             case "4":
@@ -972,3 +1026,43 @@ static void PlanTransition(TreatmentPlanManager manager, string action)
         Console.WriteLine("Перехід неможливий для поточного статусу.");
 }
 
+static void RunFilesMenu(Clinic clinic)
+{
+    while (true)
+    {
+        Console.WriteLine("\n── Файли ────────────────────");
+        Console.WriteLine("1. Останні рядки лога");
+        Console.WriteLine("2. Очистити лог");
+        Console.WriteLine("0. Назад");
+        Console.Write("Оберіть: ");
+
+        string? choice = Console.ReadLine();
+        if (choice == "0" || string.IsNullOrEmpty(choice)) break;
+
+        switch (choice)
+        {
+            case "1":
+                Console.Write("Скільки останніх рядків: ");
+                if (!int.TryParse(Console.ReadLine(), out int n))
+                {
+                    Console.WriteLine("Помилка: введіть ціле число.");
+                    break;
+                }
+                string[] logLines = clinic.Logger.GetLastLines(n);
+                if (logLines.Length == 0)
+                {
+                    Console.WriteLine("Лог порожній або файл не знайдено.");
+                }
+                else
+                {
+                    for (int i = 0; i < logLines.Length; i++) Console.WriteLine(logLines[i]);
+                }
+                break;
+
+            case "2":
+                clinic.Logger.Clear();
+                Console.WriteLine("Лог очищено.");
+                break;
+        }
+    }
+}
