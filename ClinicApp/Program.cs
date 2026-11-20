@@ -1033,6 +1033,7 @@ static void RunFilesMenu(Clinic clinic)
         Console.WriteLine("\n── Файли ────────────────────");
         Console.WriteLine("1. Останні рядки лога");
         Console.WriteLine("2. Очистити лог");
+        Console.WriteLine("3. Експортувати всі звіти");
         Console.WriteLine("0. Назад");
         Console.Write("Оберіть: ");
 
@@ -1062,6 +1063,11 @@ static void RunFilesMenu(Clinic clinic)
             case "2":
                 clinic.Logger.Clear();
                 Console.WriteLine("Лог очищено.");
+                break;
+            case "3":
+                string[] paths = clinic.Exporter.ExportAll();
+                Console.WriteLine("Створено файли:");
+                for (int i = 0; i < paths.Length; i++) Console.WriteLine($"  {paths[i]}");
                 break;
         }
     }
