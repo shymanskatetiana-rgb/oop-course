@@ -88,6 +88,17 @@ urgentVip.DiscountMultiplier = 0.8m;
 Console.WriteLine($"Терміновий VIP (30 хв): {urgentVip.GetCost():F2} грн");
 // (300 * 0.8) * 1.5 = 360.00
 
+if (clinic.Session.Exists())
+{
+    Console.Write("Знайдено збережену сесію. Завантажити? (y/n): ");
+    string? loadAnswer = Console.ReadLine();
+    if (loadAnswer != null && loadAnswer.Trim().ToLower() == "y")
+    {
+        int loaded = clinic.Session.Load(clinic);
+        Console.WriteLine($"Завантажено {loaded} пацієнтів.");
+    }
+}
+
 RunMainMenu(clinic);
 
 static void RunMainMenu(Clinic clinic)
@@ -144,6 +155,14 @@ static void RunMainMenu(Clinic clinic)
                 RunFilesMenu(clinic);
                 break;
         }
+    }
+
+    Console.Write("Зберегти сесію? (y/n): ");
+    string? saveAnswer = Console.ReadLine();
+    if (saveAnswer != null && saveAnswer.Trim().ToLower() == "y")
+    {
+        clinic.Session.Save(clinic);
+        Console.WriteLine("Сесію збережено.");
     }
 }
 
