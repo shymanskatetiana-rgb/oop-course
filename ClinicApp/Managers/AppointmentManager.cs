@@ -1,6 +1,7 @@
 using ClinicApp.Enums;
 using ClinicApp.Models;
 using ClinicApp.Interfaces;
+using ClinicApp.Events;
 
 namespace ClinicApp.Managers;
 
@@ -19,6 +20,8 @@ public class AppointmentManager
             return _count;
         }
     }
+
+    public event EventHandler<AppointmentEventArgs>? AppointmentBooked;
 
     public AppointmentManager(PatientManager patientManager, DoctorManager doctorManager)
     {
@@ -94,6 +97,10 @@ public class AppointmentManager
 
         _appointments[_count] = app;
         _count++;
+
+        AppointmentBooked?.Invoke(this, new AppointmentEventArgs(
+            app.Id, app.PatientId, app.DoctorId, app.ScheduledAt, app.Notes));
+
         return true;
     }
 

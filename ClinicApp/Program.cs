@@ -9,11 +9,19 @@ using ClinicApp.Models;
 using ClinicApp.Utils;
 using ClinicApp.Interfaces;
 using ClinicApp.Comparators;
+using ClinicApp.Events;
 
 Console.OutputEncoding = System.Text.Encoding.UTF8;
 Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
 
 Clinic clinic = new Clinic("Медична Клініка");
+clinic.Appointments.AppointmentBooked += OnAppointmentBookedConsole;
+
+static void OnAppointmentBookedConsole(object? sender, AppointmentEventArgs e)
+{
+    Console.WriteLine($"[EVENT] Запис #{e.AppointmentId} створено: пацієнт #{e.PatientId} → лікар #{e.DoctorId}, {e.ScheduledAt:dd.MM.yyyy HH:mm}");
+}
+
 DateTime today = DateTime.Today;
 
 clinic.Patients.Add(new Patient("Іван", "Петренко", today.AddYears(-41), BloodType.APositive, "0501234567"));
