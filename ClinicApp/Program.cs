@@ -165,7 +165,11 @@ static void RunMainMenu(Clinic clinic)
         }
     }
 
+    clinic.Tracker.PrintSummary();
+    clinic.Tracker.SaveSummary();
+
     Console.Write("Зберегти сесію? (y/n): ");
+
     string? saveAnswer = Console.ReadLine();
     if (saveAnswer != null && saveAnswer.Trim().ToLower() == "y")
     {
