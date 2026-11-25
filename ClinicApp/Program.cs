@@ -214,7 +214,6 @@ static void RunPatientMenu(Clinic clinic)
                     Patient newPatient = new Patient(fn, ln, DateTime.Today.AddYears(-20), bt, phone);
                     manager.Add(newPatient);
                     Console.WriteLine("Пацієнта успішно додано!");
-                    clinic.Logger.LogInfo($"Додано пацієнта #{newPatient.Id}: {newPatient.FullName}");
                 }
                 catch (ArgumentOutOfRangeException ex)
                 {
@@ -428,7 +427,6 @@ static void RunAppointmentMenu(Clinic clinic)
                     if (appManager.Book(pId, dId, DateTime.Today.AddHours(h), duration))
                     {
                         Console.WriteLine("Запис успішно створено!");
-                        clinic.Logger.LogInfo($"Запис створено: пацієнт #{pId} → лікар #{dId}");
                     }
                 }
                 catch (ArgumentOutOfRangeException ex)
@@ -456,7 +454,6 @@ static void RunAppointmentMenu(Clinic clinic)
                     if (appManager.Cancel(appId, reason))
                     {
                         Console.WriteLine("Запис успішно скасовано.");
-                        clinic.Logger.LogInfo($"Запис #{appId} скасовано.");
                     }
                     else
                     {
@@ -471,7 +468,6 @@ static void RunAppointmentMenu(Clinic clinic)
                     if (appManager.Complete(compId))
                     {
                         Console.WriteLine("Запис завершено.");
-                        clinic.Logger.LogInfo($"Запис #{compId} завершено.");
                     }
                     else
                     {
@@ -490,9 +486,8 @@ static void RunAppointmentMenu(Clinic clinic)
                 string reason8 = Console.ReadLine() ?? "";
 
                 Appointment[] patApps = appManager.GetByPatient(patId);
-                int cancelled = AppointmentManager.CancelAll(patApps, reason8);
+                int cancelled = appManager.CancelAll(patApps, reason8);
                 Console.WriteLine($"Скасовано записів: {cancelled}");
-                clinic.Logger.LogInfo($"Скасовано {cancelled} записів пацієнта #{patId}.");
                 break;
             case "9":
                 Console.WriteLine("1. Термінові");
@@ -561,7 +556,6 @@ static void RunBillingMenu(Clinic clinic)
                     if (clinic.Billing.PayAppointment(appId))
                     {
                         Console.WriteLine("Запис оплачено.");
-                        clinic.Logger.LogInfo($"Оплачено запис #{appId}.");
                     }
                     else
                     {
@@ -1044,7 +1038,7 @@ static void PlanTransition(TreatmentPlanManager manager, string action)
 
     bool moved;
     if (action == "activate") moved = plan.Activate();
-    else if (action == "complete") moved = plan.Complete();
+    else if (action == "complete") moved = manager.Complete(id);
     else moved = plan.Cancel();
 
     if (moved)

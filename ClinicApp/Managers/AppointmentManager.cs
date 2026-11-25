@@ -22,6 +22,9 @@ public class AppointmentManager
     }
 
     public event EventHandler<AppointmentEventArgs>? AppointmentBooked;
+    public event EventHandler<AppointmentEventArgs>? UrgentAppointmentBooked;
+    public event EventHandler<AppointmentEventArgs>? AppointmentCancelled;
+    public event EventHandler<AppointmentEventArgs>? AppointmentCompleted;
 
     public AppointmentManager(PatientManager patientManager, DoctorManager doctorManager)
     {
@@ -65,7 +68,16 @@ public class AppointmentManager
 
     public bool BookUrgent(int patientId, int doctorId, DateTime scheduledAt, string urgencyNote = "", int durationMinutes = 30)
     {
-        return AddAppointment(new UrgentAppointment(patientId, doctorId, scheduledAt, urgencyNote, durationMinutes));
+        UrgentAppointment app = new UrgentAppointment(patientId, doctorId, scheduledAt, urgencyNote, durationMinutes);
+        if (!AddAppointment(app))
+        {
+            return false;
+        }
+
+        UrgentAppointmentBooked?.Invoke(this, new AppointmentEventArgs(
+            app.Id, app.PatientId, app.DoctorId, app.ScheduledAt, urgencyNote));
+
+        return true;
     }
 
     public bool BookSpecialist(int patientId, int doctorId, DateTime scheduledAt, string topic = "", int durationMinutes = 45)
@@ -109,6 +121,8 @@ public class AppointmentManager
         Appointment? app = FindById(id);
         if (app != null && app.Cancel(reason))
         {
+            AppointmentCancelled?.Invoke(this, new AppointmentEventArgs(
+                app.Id, app.PatientId, app.DoctorId, app.ScheduledAt, app.Notes));
             return true;
         }
         return false;
@@ -119,6 +133,8 @@ public class AppointmentManager
         Appointment? app = FindById(id);
         if (app != null && app.Complete())
         {
+            AppointmentCompleted?.Invoke(this, new AppointmentEventArgs(
+                app.Id, app.PatientId, app.DoctorId, app.ScheduledAt, app.Notes));
             return true;
         }
         return false;
@@ -220,14 +236,22 @@ public class AppointmentManager
         return result;
     }
 
-    public static int CancelAll(ICancellable[] items, string reason = "")
+    public int CancelAll(ICancellable[] items, string reason = "")
     {
         int cancelledCount = 0;
         for (int i = 0; i < items.Length; i++)
         {
-            if (items[i].Cancel(reason))
+            if (!items[i].Cancel(reason))
             {
-                cancelledCount++;
+                continue;
+            }
+
+            cancelledCount++;
+
+            if (items[i] is Appointment app)
+            {
+                AppointmentCancelled?.Invoke(this, new AppointmentEventArgs(
+                    app.Id, app.PatientId, app.DoctorId, app.ScheduledAt, app.Notes));
             }
         }
         return cancelledCount;
