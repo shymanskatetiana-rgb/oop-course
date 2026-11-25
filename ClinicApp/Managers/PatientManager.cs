@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using ClinicApp.Enums;
 using ClinicApp.Models;
+using ClinicApp.Events;
 
 namespace ClinicApp.Managers;
 
@@ -17,10 +18,14 @@ public class PatientManager
         }
     }
 
+    public event EventHandler<PatientEventArgs>? PatientAdded;
+
     public void Add(Patient patient)
     {
         _patients.Add(patient);
-        Console.WriteLine($"Пацієнта [{patient.Id}] {patient.FullName} додано.");
+        Console.WriteLine($"Додано [{patient.Id}] {patient.FullName} пацієнта.");
+
+        PatientAdded?.Invoke(this, new PatientEventArgs(patient.Id, patient.FullName));
     }
 
     public Patient[] FindByBloodType(BloodType bloodType)

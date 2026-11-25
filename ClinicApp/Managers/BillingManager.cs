@@ -1,6 +1,7 @@
 using System;
 using ClinicApp.Interfaces;
 using ClinicApp.Models;
+using ClinicApp.Events;
 
 namespace ClinicApp.Managers;
 
@@ -45,6 +46,8 @@ public class BillingManager
         return total;
     }
 
+    public event EventHandler<PaymentEventArgs>? PaymentReceived;
+
     public bool PayAppointment(int appointmentId)
     {
         Appointment[] all = _appointments.GetAll();
@@ -54,7 +57,10 @@ public class BillingManager
             {
                 if (!all[i].IsPaid && !all[i].IsCancelled)
                 {
+                    decimal amount = all[i].GetCost();
                     all[i].MarkPaid();
+
+                    PaymentReceived?.Invoke(this, new PaymentEventArgs(all[i].Id, amount));
                     return true;
                 }
                 return false;
